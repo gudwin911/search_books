@@ -11,12 +11,26 @@ class BasePage(object):
     def scroll_down(self, num):
         self.driver.execute_script("window.scrollTo(0, %s);" % num)
 
-    def search(self, param1):
-        txt = self.driver.find_element(By.NAME, "query")
-        txt.send_keys(param1)
+    def search(self, field, book, shop):
+        txt = self.driver.find_element(By.NAME, "%s" % field)
+        txt.send_keys(book)
         txt.submit()
-        return Page(self.driver)
+        return SearchResultPage(self.driver, shop)
 
 
-class Page(BasePage):
-    pass
+class SearchResultPage(BasePage):
+    def __init__(self, driver, shop):
+        super().__init__(driver)
+        self.driver.get("%s" % shop)
+        WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.TAG_NAME, "h1")))
+
+    def to_book(self, book):
+        self.driver.find_element(By.LINK_TEXT(book)).click()
+        return ProductPage(self.driver)
+
+
+class ProductPage(SearchResultPage):
+    def __init__(self, driver):
+        super().__init__(self, driver)
+        pass
